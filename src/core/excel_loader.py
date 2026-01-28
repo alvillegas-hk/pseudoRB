@@ -16,7 +16,6 @@ def load_observaciones_excel(path: Path, sheet: str) -> pd.DataFrame:
     df = pd.read_excel(path, sheet_name=sheet, engine="openpyxl")
     df.columns = [_normalize_col(c) for c in df.columns]
 
-    # Normalización defensiva de nombres esperados
     rename_map = {
         "Auditoría/Proceso": "Auditoria/Proceso",
         "Severidad Observación": "Severidad Observación",

@@ -5,9 +5,9 @@ from config.logging_config import setup_logging
 from core.excel_loader import load_observaciones_excel
 from core.processing import split_por_estado
 from core.validators import validate_excel, validate_url, validate_gmail_files
-from services.gmail_service import GmailClient
+from services.gmail.client import GmailClient
 from services.playwright.runner import process_rows
-from services.playwright.runner import process_rows
+from core.notifications.auditoria_mailer import notify_atrasados
 
 log = logging.getLogger("main")
 
@@ -26,38 +26,14 @@ def run():
 
     log.info("Atrasados=%s Regularizados=%s", len(atrasados), len(regularizados))
 
-    # ==========================
-    # GMAIL (una sola sesión)
-    # ==========================
-
-    gmail = GmailClient(
-        credentials_json=settings.gmail_credentials_json,
-        token_json=settings.gmail_token_json,
-        sender=settings.gmail_from,
-    )
-    gmail.authenticate()
-
-    for row in atrasados:
-        to = row.get("Correo responsable", "")
-        if not to:
-            continue
-
-        subject = f"[Auditoría] Observación ATRASADA - {row.get('Auditoria/Proceso','')}"
-        body = (
-            f"Hola {row.get('Responsable','')},\n\n"
-            f"Tenés una observación ATRASADA:\n"
-            f"- Proceso: {row.get('Auditoria/Proceso','')}\n"
-            f"- Observación: {row.get('Observación','')}\n"
-            f"- Plan: {row.get('Plan de Acción','')}\n"
-            f"- Fecha compromiso: {row.get('Fecha Compromiso','')}\n"
-            f"- Estado: {row.get('Estado','')}\n"
+    if atrasados:
+        gmail = GmailClient(
+            credentials_json=settings.gmail_credentials_json,
+            token_json=settings.gmail_token_json,
+            sender=settings.gmail_from,
         )
-
-        gmail.send_text(to, subject, body)
-
-    # ==========================
-    # PLAYWRIGHT
-    # ==========================
+        gmail.authenticate()
+        notify_atrasados(gmail, atrasados)
 
     process_rows(
         settings.form_url,
