@@ -1,0 +1,12 @@
+pandas==2.2.2
+openpyxl==3.1.5
+python-dotenv==1.0.1
+
+playwright==1.46.0
+
+google-api-python-client==2.141.0
+google-auth==2.33.0
+google-auth-oauthlib==1.2.1
+google-auth-httplib2==0.2.0
+
+protobuf
